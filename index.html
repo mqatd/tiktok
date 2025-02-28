@@ -15,6 +15,36 @@
             justify-content: center;
             align-items: center;
             user-select: none;
+            position: relative;
+        }
+
+        /* Curtain styles */
+        .curtain {
+            position: fixed;
+            top: 0;
+            height: 100vh;
+            width: 50%;
+            background: #1a1a1a;
+            z-index: 1000;
+            transition: transform 1.5s ease-out;
+        }
+
+        .curtain-left {
+            left: 0;
+            transform: translateX(0);
+        }
+
+        .curtain-right {
+            right: 0;
+            transform: translateX(0);
+        }
+
+        .curtain-open .curtain-left {
+            transform: translateX(-100%);
+        }
+
+        .curtain-open .curtain-right {
+            transform: translateX(100%);
         }
 
         .video-slider {
@@ -53,6 +83,7 @@
             font-size: 16px;
             opacity: 0;
             transition: opacity 0.3s ease;
+            z-index: 10;
         }
 
         .notification.show {
@@ -61,6 +92,10 @@
     </style>
 </head>
 <body>
+    <!-- Curtain elements -->
+    <div class="curtain curtain-left"></div>
+    <div class="curtain curtain-right"></div>
+
     <div class="video-slider">
         <div class="video-container" style="transform: translateY(0%)">
             <video autoplay muted loop>
@@ -81,6 +116,13 @@
     </div>
 
     <script>
+        // Curtain animation
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.body.classList.add('curtain-open');
+            }, 500); // Small delay before animation starts
+        });
+
         let currentIndex = 0;
         const videos = document.querySelectorAll('.video-container');
         const totalVideos = videos.length;
@@ -93,7 +135,6 @@
             videos.forEach((video, index) => {
                 video.style.transform = `translateY(${(index - currentIndex) * 100}%)`;
             });
-            // Show notification only on first video
             if (currentIndex === 0) {
                 showNotification();
             } else {
@@ -105,10 +146,9 @@
             notification.classList.add('show');
             setTimeout(() => {
                 notification.classList.remove('show');
-            }, 1000); // Hide after 1 second
+            }, 1000);
         }
 
-        // Touch event handlers
         document.addEventListener('touchstart', e => {
             startY = e.touches[0].clientY;
             isSwiping = true;
@@ -145,7 +185,6 @@
             updateSlider();
         });
 
-        // Mouse support for desktop testing
         let isDragging = false;
         document.addEventListener('mousedown', e => {
             startY = e.clientY;
@@ -181,7 +220,6 @@
             updateSlider();
         });
 
-        // Initial setup
         updateSlider();
     </script>
 </body>
