@@ -14,7 +14,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            user-select: none; /* Prevents text selection while swiping */
+            user-select: none;
         }
 
         .video-slider {
@@ -39,6 +39,25 @@
             height: 100%;
             object-fit: cover;
         }
+
+        .notification {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: #000;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -58,6 +77,7 @@
                 <source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">
             </video>
         </div>
+        <div class="notification" id="scrollNotification">Scroll down for more</div>
     </div>
 
     <script>
@@ -67,18 +87,32 @@
         let startY = 0;
         let currentY = 0;
         let isSwiping = false;
+        const notification = document.getElementById('scrollNotification');
 
         function updateSlider() {
             videos.forEach((video, index) => {
                 video.style.transform = `translateY(${(index - currentIndex) * 100}%)`;
             });
+            // Show notification only on first video
+            if (currentIndex === 0) {
+                showNotification();
+            } else {
+                notification.classList.remove('show');
+            }
+        }
+
+        function showNotification() {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 1000); // Hide after 1 second
         }
 
         // Touch event handlers
         document.addEventListener('touchstart', e => {
             startY = e.touches[0].clientY;
             isSwiping = true;
-            videos.forEach(video => video.style.transition = 'none'); // Remove transition during swipe
+            videos.forEach(video => video.style.transition = 'none');
         });
 
         document.addEventListener('touchmove', e => {
@@ -86,27 +120,26 @@
             currentY = e.touches[0].clientY;
             let diff = currentY - startY;
             
-            // Move videos based on swipe
             videos.forEach((video, index) => {
                 let position = (index - currentIndex) * 100 + (diff / window.innerHeight) * 100;
                 video.style.transform = `translateY(${position}%)`;
             });
             
-            e.preventDefault(); // Prevent default scrolling
+            e.preventDefault();
         }, { passive: false });
 
         document.addEventListener('touchend', e => {
             if (!isSwiping) return;
             isSwiping = false;
-            videos.forEach(video => video.style.transition = 'transform 0.3s ease'); // Restore transition
+            videos.forEach(video => video.style.transition = 'transform 0.3s ease');
             
             const diff = currentY - startY;
-            const threshold = window.innerHeight * 0.3; // 30% of screen height as threshold
+            const threshold = window.innerHeight * 0.3;
 
             if (diff > threshold && currentIndex > 0) {
-                currentIndex--; // Swipe down
+                currentIndex--;
             } else if (diff < -threshold && currentIndex < totalVideos - 1) {
-                currentIndex++; // Swipe up
+                currentIndex++;
             }
             
             updateSlider();
@@ -148,7 +181,7 @@
             updateSlider();
         });
 
-        // Initial positioning
+        // Initial setup
         updateSlider();
     </script>
 </body>
