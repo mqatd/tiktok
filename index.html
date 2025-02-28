@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Slider</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none; /* Prevents text selection while swiping */
+        }
+
+        .video-slider {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-slider">
+        <div class="video-container" style="transform: translateY(0%)">
+            <video autoplay muted loop>
+                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="video-container" style="transform: translateY(100%)">
+            <video autoplay muted loop>
+                <source src="https://www.w3schools.com/html/movie.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="video-container" style="transform: translateY(200%)">
+            <video autoplay muted loop>
+                <source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">
+            </video>
+        </div>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        const videos = document.querySelectorAll('.video-container');
+        const totalVideos = videos.length;
+        let startY = 0;
+        let currentY = 0;
+        let isSwiping = false;
+
+        function updateSlider() {
+            videos.forEach((video, index) => {
+                video.style.transform = `translateY(${(index - currentIndex) * 100}%)`;
+            });
+        }
+
+        // Touch event handlers
+        document.addEventListener('touchstart', e => {
+            startY = e.touches[0].clientY;
+            isSwiping = true;
+            videos.forEach(video => video.style.transition = 'none'); // Remove transition during swipe
+        });
+
+        document.addEventListener('touchmove', e => {
+            if (!isSwiping) return;
+            currentY = e.touches[0].clientY;
+            let diff = currentY - startY;
+            
+            // Move videos based on swipe
+            videos.forEach((video, index) => {
+                let position = (index - currentIndex) * 100 + (diff / window.innerHeight) * 100;
+                video.style.transform = `translateY(${position}%)`;
+            });
+            
+            e.preventDefault(); // Prevent default scrolling
+        }, { passive: false });
+
+        document.addEventListener('touchend', e => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            videos.forEach(video => video.style.transition = 'transform 0.3s ease'); // Restore transition
+            
+            const diff = currentY - startY;
+            const threshold = window.innerHeight * 0.3; // 30% of screen height as threshold
+
+            if (diff > threshold && currentIndex > 0) {
+                currentIndex--; // Swipe down
+            } else if (diff < -threshold && currentIndex < totalVideos - 1) {
+                currentIndex++; // Swipe up
+            }
+            
+            updateSlider();
+        });
+
+        // Mouse support for desktop testing
+        let isDragging = false;
+        document.addEventListener('mousedown', e => {
+            startY = e.clientY;
+            isDragging = true;
+            videos.forEach(video => video.style.transition = 'none');
+        });
+
+        document.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            currentY = e.clientY;
+            let diff = currentY - startY;
+            
+            videos.forEach((video, index) => {
+                let position = (index - currentIndex) * 100 + (diff / window.innerHeight) * 100;
+                video.style.transform = `translateY(${position}%)`;
+            });
+        });
+
+        document.addEventListener('mouseup', e => {
+            if (!isDragging) return;
+            isDragging = false;
+            videos.forEach(video => video.style.transition = 'transform 0.3s ease');
+            
+            const diff = currentY - startY;
+            const threshold = window.innerHeight * 0.3;
+
+            if (diff > threshold && currentIndex > 0) {
+                currentIndex--;
+            } else if (diff < -threshold && currentIndex < totalVideos - 1) {
+                currentIndex++;
+            }
+            
+            updateSlider();
+        });
+
+        // Initial positioning
+        updateSlider();
+    </script>
+</body>
+</html>
